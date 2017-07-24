@@ -1,0 +1,163 @@
+# -------------------------------------------------------------------------- #
+#
+# Copyright (C) 1991-2013 Altera Corporation
+# Your use of Altera Corporation's design tools, logic functions 
+# and other software and tools, and its AMPP partner logic 
+# functions, and any output files from any of the foregoing 
+# (including device programming or simulation files), and any 
+# associated documentation or information are expressly subject 
+# to the terms and conditions of the Altera Program License 
+# Subscription Agreement, Altera MegaCore Function License 
+# Agreement, or other applicable license agreement, including, 
+# without limitation, that your use is for the sole purpose of 
+# programming logic devices manufactured by Altera and sold by 
+# Altera or its authorized distributors.  Please refer to the 
+# applicable agreement for further details.
+#
+# -------------------------------------------------------------------------- #
+#
+# Quartus II 64-Bit
+# Version 13.0.1 Build 232 06/12/2013 Service Pack 1 SJ Web Edition
+# Date created = 09:51:49  August 04, 2016
+#
+# -------------------------------------------------------------------------- #
+#
+# Notes:
+#
+# 1) The default values for assignments are stored in the file:
+#		displayController_assignment_defaults.qdf
+#    If this file doesn't exist, see file:
+#		assignment_defaults.qdf
+#
+# 2) Altera recommends that you do not modify this file. This
+#    file is updated automatically by the Quartus II software
+#    and any changes you make may be lost or overwritten.
+#
+# -------------------------------------------------------------------------- #
+
+
+set_global_assignment -name FAMILY "MAX II"
+set_global_assignment -name DEVICE EPM570T144C5
+set_global_assignment -name TOP_LEVEL_ENTITY displayController
+set_global_assignment -name ORIGINAL_QUARTUS_VERSION "13.0 SP1"
+set_global_assignment -name PROJECT_CREATION_TIME_DATE "09:51:49  AUGUST 04, 2016"
+set_global_assignment -name LAST_QUARTUS_VERSION "13.0 SP1"
+set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
+set_global_assignment -name MIN_CORE_JUNCTION_TEMP 0
+set_global_assignment -name MAX_CORE_JUNCTION_TEMP 85
+set_global_assignment -name ERROR_CHECK_FREQUENCY_DIVISOR "-1"
+set_global_assignment -name POWER_EXT_SUPPLY_VOLTAGE_TO_REGULATOR 3.3V
+set_global_assignment -name VERILOG_FILE displayController.v
+set_global_assignment -name STRATIX_DEVICE_IO_STANDARD "3.3-V LVTTL"
+set_location_assignment PIN_1 -to iGPIO0[0]
+set_location_assignment PIN_2 -to iGPIO0[1]
+set_location_assignment PIN_3 -to iGPIO0[2]
+set_location_assignment PIN_4 -to iGPIO0[3]
+set_location_assignment PIN_5 -to iGPIO0[4]
+set_location_assignment PIN_6 -to iGPIO0[5]
+set_location_assignment PIN_7 -to iGPIO0[6]
+set_location_assignment PIN_8 -to iGPIO0[7]
+set_location_assignment PIN_11 -to iGPIO0[8]
+set_location_assignment PIN_12 -to iGPIO0[9]
+set_location_assignment PIN_13 -to iGPIO0[10]
+set_location_assignment PIN_14 -to iGPIO0[11]
+set_location_assignment PIN_15 -to iGPIO0[12]
+set_location_assignment PIN_16 -to iGPIO0[13]
+set_location_assignment PIN_21 -to iGPIO0[14]
+set_location_assignment PIN_22 -to iGPIO0[15]
+set_location_assignment PIN_23 -to iGPIO0[16]
+set_location_assignment PIN_24 -to iGPIO0[17]
+set_location_assignment PIN_27 -to iGPIO0[18]
+set_location_assignment PIN_28 -to iGPIO0[19]
+set_location_assignment PIN_29 -to iGPIO0[20]
+set_location_assignment PIN_30 -to iGPIO0[21]
+set_location_assignment PIN_31 -to iGPIO0[22]
+set_location_assignment PIN_32 -to iGPIO0[23]
+set_location_assignment PIN_37 -to iGPIO0[24]
+set_location_assignment PIN_38 -to iGPIO0[25]
+set_location_assignment PIN_39 -to iGPIO0[26]
+set_location_assignment PIN_40 -to iGPIO0[27]
+set_location_assignment PIN_41 -to iGPIO0[28]
+set_location_assignment PIN_42 -to iGPIO0[29]
+set_location_assignment PIN_43 -to iGPIO1[0]
+set_location_assignment PIN_44 -to iGPIO1[1]
+set_location_assignment PIN_45 -to iGPIO1[2]
+set_location_assignment PIN_48 -to iGPIO1[3]
+set_location_assignment PIN_49 -to iGPIO1[4]
+set_location_assignment PIN_50 -to iGPIO1[5]
+set_location_assignment PIN_51 -to iGPIO1[6]
+set_location_assignment PIN_52 -to iGPIO1[7]
+set_location_assignment PIN_53 -to iGPIO1[8]
+set_location_assignment PIN_55 -to iGPIO1[9]
+set_location_assignment PIN_57 -to iGPIO1[10]
+set_location_assignment PIN_58 -to iGPIO1[11]
+set_location_assignment PIN_59 -to iGPIO1[12]
+set_location_assignment PIN_60 -to iGPIO1[13]
+set_location_assignment PIN_61 -to iGPIO1[14]
+set_location_assignment PIN_62 -to iGPIO1[15]
+set_location_assignment PIN_63 -to iGPIO1[16]
+set_location_assignment PIN_66 -to iGPIO1[17]
+set_location_assignment PIN_89 -to iRESET
+set_location_assignment PIN_73 -to ioSRAMDataPort[0]
+set_location_assignment PIN_74 -to ioSRAMDataPort[1]
+set_location_assignment PIN_75 -to ioSRAMDataPort[2]
+set_location_assignment PIN_76 -to ioSRAMDataPort[3]
+set_location_assignment PIN_77 -to ioSRAMDataPort[4]
+set_location_assignment PIN_78 -to ioSRAMDataPort[5]
+set_location_assignment PIN_79 -to ioSRAMDataPort[6]
+set_location_assignment PIN_80 -to ioSRAMDataPort[7]
+set_location_assignment PIN_81 -to ioSRAMDataPort[8]
+set_location_assignment PIN_84 -to ioSRAMDataPort[9]
+set_location_assignment PIN_85 -to ioSRAMDataPort[10]
+set_location_assignment PIN_86 -to ioSRAMDataPort[11]
+set_location_assignment PIN_87 -to ioSRAMDataPort[12]
+set_location_assignment PIN_88 -to ioSRAMDataPort[13]
+set_location_assignment PIN_93 -to ioSRAMDataPort[14]
+set_location_assignment PIN_94 -to ioSRAMDataPort[15]
+set_location_assignment PIN_95 -to ioSRAMDataPort[16]
+set_location_assignment PIN_96 -to ioSRAMDataPort[17]
+set_location_assignment PIN_97 -to ioSRAMDataPort[18]
+set_location_assignment PIN_98 -to ioSRAMDataPort[19]
+set_location_assignment PIN_101 -to ioSRAMDataPort[20]
+set_location_assignment PIN_102 -to ioSRAMDataPort[21]
+set_location_assignment PIN_103 -to ioSRAMDataPort[22]
+set_location_assignment PIN_104 -to ioSRAMDataPort[23]
+set_location_assignment PIN_67 -to oDispClockPort
+set_location_assignment PIN_70 -to oDispDataEnablePort
+set_location_assignment PIN_68 -to oDispHsyncPort
+set_location_assignment PIN_69 -to oDispVsyncPort
+set_location_assignment PIN_113 -to oSRAMAddrPort[0]
+set_location_assignment PIN_114 -to oSRAMAddrPort[1]
+set_location_assignment PIN_117 -to oSRAMAddrPort[2]
+set_location_assignment PIN_118 -to oSRAMAddrPort[3]
+set_location_assignment PIN_119 -to oSRAMAddrPort[4]
+set_location_assignment PIN_120 -to oSRAMAddrPort[5]
+set_location_assignment PIN_121 -to oSRAMAddrPort[6]
+set_location_assignment PIN_122 -to oSRAMAddrPort[7]
+set_location_assignment PIN_123 -to oSRAMAddrPort[8]
+set_location_assignment PIN_124 -to oSRAMAddrPort[9]
+set_location_assignment PIN_125 -to oSRAMAddrPort[10]
+set_location_assignment PIN_127 -to oSRAMAddrPort[11]
+set_location_assignment PIN_129 -to oSRAMAddrPort[12]
+set_location_assignment PIN_130 -to oSRAMAddrPort[13]
+set_location_assignment PIN_131 -to oSRAMAddrPort[14]
+set_location_assignment PIN_132 -to oSRAMAddrPort[15]
+set_location_assignment PIN_133 -to oSRAMAddrPort[16]
+set_location_assignment PIN_134 -to oSRAMAddrPort[17]
+set_location_assignment PIN_137 -to oSRAMOutputEnablePort
+set_location_assignment PIN_138 -to oSRAMWriteEnablePort
+set_location_assignment PIN_71 -to oDispDispPort
+set_location_assignment PIN_72 -to oDispLedSHDNPort
+set_global_assignment -name AUTO_RESTART_CONFIGURATION OFF
+set_global_assignment -name USE_CONFIGURATION_DEVICE ON
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS "AS INPUT TRI-STATED"
+set_global_assignment -name POWER_PRESET_COOLING_SOLUTION "NO HEAT SINK WITH STILL AIR"
+set_location_assignment PIN_144 -to iModeSelectorPort[0]
+set_location_assignment PIN_143 -to iModeSelectorPort[1]
+set_location_assignment PIN_142 -to iModeSelectorPort[2]
+set_location_assignment PIN_141 -to iModeSelectorPort[3]
+set_location_assignment PIN_140 -to iModeSelectorPort[4]
+set_location_assignment PIN_139 -to iModeSelectorPort[5]
+set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS INPUT TRI-STATED"
+set_location_assignment PIN_18 -to iCLOCKA
+set_location_assignment PIN_20 -to iCLOCKB
