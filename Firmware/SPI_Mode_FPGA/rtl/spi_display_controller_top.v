@@ -1,8 +1,8 @@
 /*************************************************************
- * Title : SPI LCD Controller Top Module
+ * Title : SPI TFT LCD Controller Top Module
  * Date  : 2019/8/6
  *************************************************************/
-module display_controller_top (
+module spi_display_controller_top (
     input   wire            mco,
     input   wire            rst_n,
 

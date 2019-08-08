@@ -63,32 +63,40 @@ create_clock -name clkout -period 25.000
 #**************************************************************
 # Set Input Delay
 #**************************************************************
-set_input_delay -clock SPI_CLK -max 8 [get_ports {SPI_CS}]
-set_input_delay -clock SPI_CLK -min 1 [get_ports {SPI_CS}]
-set_input_delay -clock SPI_CLK -max 8 [get_ports {SPI_MOSI}]
-set_input_delay -clock SPI_CLK -min 1 [get_ports {SPI_MOSI}]
+set_input_delay -clock SPI_CLK -min 0 [get_ports {SPI_CS}]
+set_input_delay -clock SPI_CLK -max 6 [get_ports {SPI_CS}]
+set_input_delay -clock SPI_CLK -min 0 [get_ports {SPI_MOSI}]
+set_input_delay -clock SPI_CLK -max 6 [get_ports {SPI_MOSI}]
 
 #**************************************************************
 # Set Output Delay
 #**************************************************************
+set_output_delay -clock clkout -min 0  [get_ports {oSRAMAddrPort[*]}]
 set_output_delay -clock clkout -max 6  [get_ports {oSRAMAddrPort[*]}]
-set_output_delay -clock clkout -min -2 [get_ports {oSRAMAddrPort[*]}]
+
+set_output_delay -clock clkout -min 0  [get_ports {ioSRAMDataPort[*]}]
 set_output_delay -clock clkout -max 6  [get_ports {ioSRAMDataPort[*]}]
-set_output_delay -clock clkout -max -2 [get_ports {ioSRAMDataPort[*]}]
+
+set_output_delay -clock clkout -min 0  [get_ports {oDispClockPort}]
 set_output_delay -clock clkout -max 6  [get_ports {oDispClockPort}]
-set_output_delay -clock clkout -max -2 [get_ports {oDispClockPort}]
+
+set_output_delay -clock clkout -min 0  [get_ports {oDispDataEnablePort}]
 set_output_delay -clock clkout -max 6  [get_ports {oDispDataEnablePort}]
-set_output_delay -clock clkout -min -2 [get_ports {oDispDataEnablePort}]
+
+set_output_delay -clock clkout -min 0  [get_ports {oDispHsyncPort}]
 set_output_delay -clock clkout -max 6  [get_ports {oDispHsyncPort}]
-set_output_delay -clock clkout -min -2 [get_ports {oDispHsyncPort}]
+
+set_output_delay -clock clkout -min 0  [get_ports {oDispVsyncPort}]
 set_output_delay -clock clkout -max 6  [get_ports {oDispVsyncPort}]
-set_output_delay -clock clkout -min -2 [get_ports {oDispVsyncPort}]
+
+set_output_delay -clock clkout -min 0  [get_ports {oSRAMOutputEnablePort}]
 set_output_delay -clock clkout -max 6  [get_ports {oSRAMOutputEnablePort}]
-set_output_delay -clock clkout -min -2 [get_ports {oSRAMOutputEnablePort}]
+
+set_output_delay -clock clkout -min 0  [get_ports {oSRAMWriteEnablePort}]
 set_output_delay -clock clkout -max 6  [get_ports {oSRAMWriteEnablePort}]
-set_output_delay -clock clkout -min -2 [get_ports {oSRAMWriteEnablePort}]
+
+set_output_delay -clock clkout -min 0  [get_ports {oDispLedSHDNPort}]
 set_output_delay -clock clkout -max 6  [get_ports {oDispLedSHDNPort}]
-set_output_delay -clock clkout -min -2  [get_ports {oDispLedSHDNPort}]
 
 
 #**************************************************************
