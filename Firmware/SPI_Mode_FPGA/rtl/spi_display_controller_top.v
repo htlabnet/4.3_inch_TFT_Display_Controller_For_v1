@@ -97,14 +97,14 @@ module spi_display_controller_top (
      *  SRAM制御
      *************************************************************/
     reg [ 1:0]  state;
-    reg         page;
+    reg         writePage;
     reg [17:0]  sramWriteAddr;
     reg         sram_OE;
     reg         sram_WE;
     always @(posedge mco or negedge rst_n) begin
         if (~rst_n) begin
             state[1:0] <= 2'd0;
-            page <= 1'b0;
+            writePage <= 1'b0;
             sramWriteAddr[17:0] <= 18'd0;
             ioSRAMDataPort[23:0] <= 24'bzzzzzzzzzzzzzzzzzzzzzzzz;
             oSRAMAddrPort[17:0] <= 18'd0;
@@ -118,7 +118,7 @@ module spi_display_controller_top (
                 2'b00: begin
                     if (sram_write_req) begin
                         // SRAMへのデータ書き込み
-                        oSRAMAddrPort[17:0] <= {page, sramWriteAddr[16:0]};
+                        oSRAMAddrPort[17:0] <= {writePage, sramWriteAddr[16:0]};
                         sramWriteAddr[17:0] <= sramWriteAddr[17:0] + 18'd1;    // 書き込み後アドレス自動インクリメント
                         ioSRAMDataPort[23:0] <= {8'b0, sram_write_data[5:1], sram_write_data[11:6], sram_write_data[17:13]};
                         //                        PAD,             B (5bit),              G (6bit),               R (5bit)
@@ -127,7 +127,7 @@ module spi_display_controller_top (
                         spi_command_req_fin <= 1'b1;
                     end else if (sram_page_change_req) begin
                         // ページ切り替え
-                        page <= ~page;
+                        writePage <= ~writePage;
                         spi_command_req_fin <= 1'b1;
                         // 初回のページ切り替え後表示有効
                         oDispDispPort <= 1'b1;
@@ -148,7 +148,7 @@ module spi_display_controller_top (
 
                 2'b10: begin
                     // SRAM Data Read Enable
-                    oSRAMAddrPort[17:0] <= {~page, displayCnt[16:0]};        // SRAM読み出しアドレスセット(書き込みとは別のページを表示）
+                    oSRAMAddrPort[17:0] <= {readPage, displayCnt[16:0]};     // SRAM読み出しアドレスセット(書き込みとは別のページを表示）
                     ioSRAMDataPort[23:0] <= 24'bzzzzzzzzzzzzzzzzzzzzzzzz;    // SRAM出力と衝突しないようにFPGAのIOをHi-Zに
                     sram_OE <= 1'b1;
                     sram_WE <= 1'b0;
@@ -174,6 +174,7 @@ module spi_display_controller_top (
     reg [ 8:0] vPeriodCnt;
     reg hInVisibleArea;
     reg vInVisibleArea;
+    reg readPage;
     always @(posedge mco or negedge rst_n) begin
         if (~rst_n) begin
             displayCnt[16:0] <= 17'd0;
@@ -182,6 +183,7 @@ module spi_display_controller_top (
             oDispClockPort <= 1'b0;
             hInVisibleArea <= 1'd0;
             vInVisibleArea <= 1'd0;
+            readPage <= 1'b1;
         end else begin
             case (state[1:0])
                 2'b01 : begin
@@ -200,6 +202,7 @@ module spi_display_controller_top (
                         if (vPeriodCnt[8:0] == (DispVPeriodTime - 9'd1)) begin
                             vPeriodCnt[8:0] <= 9'd0;
                             displayCnt[16:0] <= 17'd0;
+                            readPage <= ~writePage;     // ティアリング防止の為、読み出しページ更新タイミングを垂直同期させる
                         end else begin
                             vPeriodCnt[8:0] <= vPeriodCnt[8:0] + 9'b1;
                         end
