@@ -37,10 +37,10 @@ module spi_slave (
     // 受信データ取得
     always @(posedge i_clk or negedge i_rst_n) begin
         if (~i_rst_n) begin
-            o_mosi_data <= 24'd0;
+            o_mosi_data[23:0] <= 24'd0;
         end else begin
             if (cs_posedge_dt) begin
-                o_mosi_data <= r_mosi_tmp;
+                o_mosi_data[23:0] <= r_mosi_tmp[23:0];
                 o_mosi_en_pls <= 1'b1;
             end else begin
                 o_mosi_en_pls <= 1'b0;
