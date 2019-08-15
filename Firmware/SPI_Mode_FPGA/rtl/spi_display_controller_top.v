@@ -47,13 +47,13 @@ module spi_display_controller_top (
     wire [23:0] spi_rcv_data;
     wire        spi_rcv_en;
     spi_slave spi_slave_inst (
-        .i_clk ( mco ),                 // FPGA内部CLK
-        .i_rst_n ( rst_n ),             // RESET
-        .i_spi_clk ( SPI_CLK ),         // SPI_CLK
-        .i_spi_cs ( SPI_CS ),           // SPI_CS
-        .i_spi_mosi ( SPI_MOSI ),       // SPI_MOSI
-        .o_mosi_data ( spi_rcv_data ),  // 受信データ
-        .o_mosi_en_pls ( spi_rcv_en )   // 受信データ有効
+        .i_clk ( mco ),                         // FPGA内部CLK
+        .i_rst_n ( rst_n ),                     // RESET
+        .i_spi_clk ( SPI_CLK ),                 // SPI_CLK
+        .i_spi_cs ( SPI_CS ),                   // SPI_CS
+        .i_spi_mosi ( SPI_MOSI ),               // SPI_MOSI
+        .o_mosi_data ( spi_rcv_data[23:0] ),    // 受信データ
+        .o_mosi_en_pls ( spi_rcv_en )           // 受信データ有効
     );
 
 
@@ -78,7 +78,7 @@ module spi_display_controller_top (
                     sram_write_data[17:0] <= spi_rcv_data[17:0];
                 end else if (spi_rcv_data[23:20] == 4'b1000) begin  // Addr Write
                     sram_addr_set_req <= 1'b1;
-                end else if (spi_rcv_data[23:20] == 4'b1001) begin  // Buffer Change
+                end else if (spi_rcv_data[23:20] == 4'b1001) begin  // Page Change
                     sram_page_change_req <= 1'b1;
                 end
             end else begin
@@ -103,7 +103,7 @@ module spi_display_controller_top (
     reg         sram_WE;
     always @(posedge mco or negedge rst_n) begin
         if (~rst_n) begin
-            state <= 2'd0;
+            state[1:0] <= 2'd0;
             page <= 1'b0;
             sramWriteAddr[17:0] <= 18'd0;
             ioSRAMDataPort[23:0] <= 24'bzzzzzzzzzzzzzzzzzzzzzzzz;
@@ -139,11 +139,11 @@ module spi_display_controller_top (
                     end else begin
                         spi_command_req_fin <= 1'b0;
                     end
-                    state <= 2'b01;
+                    state[1:0] <= 2'b01;
                 end
 
                 2'b01: begin
-                    state <= 2'b10;
+                    state[1:0] <= 2'b10;
                 end
 
                 2'b10: begin
@@ -152,11 +152,11 @@ module spi_display_controller_top (
                     ioSRAMDataPort[23:0] <= 24'bzzzzzzzzzzzzzzzzzzzzzzzz;    // SRAM出力と衝突しないようにFPGAのIOをHi-Zに
                     sram_OE <= 1'b1;
                     sram_WE <= 1'b0;
-                    state <= 2'b11;
+                    state[1:0] <= 2'b11;
                 end
 
                 2'b11: begin
-                    state <= 2'b00;
+                    state[1:0] <= 2'b00;
                 end
             endcase
         end
@@ -186,18 +186,18 @@ module spi_display_controller_top (
             case (state[1:0])
                 2'b01 : begin
                     // dclk立ち上げ
-                    oDispClockPort <= 1;
+                    oDispClockPort <= 1'b1;
 
                     // 水平同期信号生成
-                    if (hPeriodCnt[9:0] == (DispHPeriodTime - 1)) begin
+                    if (hPeriodCnt[9:0] == (DispHPeriodTime - 10'd1)) begin
                         hPeriodCnt[9:0] <= 10'd0;
                     end else begin
                         hPeriodCnt[9:0] <= hPeriodCnt[9:0] + 10'b1;
                     end
 
                     // 垂直同期信号生成
-                    if (hPeriodCnt[9:0] == (DispHPeriodTime - 1)) begin
-                        if (vPeriodCnt[8:0] == (DispVPeriodTime - 1)) begin
+                    if (hPeriodCnt[9:0] == (DispHPeriodTime - 10'd1)) begin
+                        if (vPeriodCnt[8:0] == (DispVPeriodTime - 9'd1)) begin
                             vPeriodCnt[8:0] <= 9'd0;
                             displayCnt[16:0] <= 17'd0;
                         end else begin
@@ -208,10 +208,10 @@ module spi_display_controller_top (
 
                 2'b10 : begin
                     // 書き込み領域判定
-                    if (hPeriodCnt[9:0] == DispHBackPorch)     hInVisibleArea <= 1;
-                    if (hPeriodCnt[9:0] == DispHFrontPorch) hInVisibleArea <= 0;
-                    if (vPeriodCnt[8:0] == DispVBackPorch)     vInVisibleArea <= 1;
-                    if (vPeriodCnt[8:0] == DispVFrontPorch) vInVisibleArea <= 0;
+                    hInVisibleArea <=   (hPeriodCnt[9:0] == DispHBackPorch)  ? 1'b1 :
+                                        (hPeriodCnt[9:0] == DispHFrontPorch) ? 1'b0 : hInVisibleArea;
+                    vInVisibleArea <=   (vPeriodCnt[8:0] == DispVBackPorch)  ? 1'b1 :
+                                        (vPeriodCnt[8:0] == DispVFrontPorch) ? 1'b0 : vInVisibleArea;
                 end
 
                 2'b11 : begin
@@ -227,8 +227,8 @@ module spi_display_controller_top (
         end
     end
 
-    assign oDispHsyncPort = (hPeriodCnt[9:0] == 10'd0) ? 1'b0 : 1'b1;    // HSYNC信号生成
-    assign oDispVsyncPort = (vPeriodCnt[8:0] <= 9'd9) ? 1'b0 : 1'b1;    // VSYNC信号生成
+    assign oDispHsyncPort = (hPeriodCnt[9:0] == 10'd0) ? 1'b0 : 1'b1;   // HSYNC信号生成
+    assign oDispVsyncPort = (vPeriodCnt[8:0] <= 9'd9)  ? 1'b0 : 1'b1;   // VSYNC信号生成
     assign oDispDataEnablePort = 1'b0;    // Data Enableは常にLowで良さそう（SYNC mode時）
 
 endmodule
