@@ -1,9 +1,9 @@
-# 概要
+# 1. 概要
 Raspberry PiにTFT Display ControllerをSPI接続して、ディスクトップ画面を出力する方法について説明する。  
 CPLDには「[SPI_Mode(RasPi)_FPGA](../Firmware/SPI_Mode(RasPi)_FPGA)」のpofファイルを書き込んでおく。  
 RasPi2B及びRasPi3Bにて動作確認済み。
 
-# 1. RasPiとコントローラボードの接続
+# 2. RasPiとコントローラボードの接続
 以下のように接続する。
 
 | RasPi GPIO      | コントローラボード(P4) |
@@ -16,7 +16,7 @@ RasPi2B及びRasPi3Bにて動作確認済み。
 | 24: SPI_CE0_N   | 2: SPI_CS    |
 
 
-# 2. Raspbianのインストール
+# 3. Raspbianのインストール
 RasPiのOSにはメジャーなRaspbianを使用した。[こちら](https://www.raspberrypi.org/downloads/raspbian/)からDLできる。  
 ホストマシンがLinuxであれば、適当な場所に解凍して以下コマンドでSDにコピーすればインストール完了。  
 ```  
@@ -31,8 +31,8 @@ sdXにはSDカードのデバイス名を指定する（例: sdb）。予め以�
 * Release date: 2019-07-10
 * Kernel version: 4.19
 
-# 3. Raspbianの設定
-## 3.1. 基本設定
+# 4. Raspbianの設定
+## 4.1. 基本設定
 （※詳しくは適宜ググってください）
 ### SSHの設定
 リモートで作業出来たほうが色々と便利なので、SSH Serverを有効にしておく。  
@@ -41,7 +41,6 @@ raspi-config
 ```
 5 Interfacing Options -> P2 SSH -> enable
 ```
-
 ### 画面設定
 周囲の黒フチ表示を解除する。  
 ```
@@ -52,6 +51,7 @@ raspi-config
 設定 -> Raspberry Piの設定 -> システム -> 解像度　720ｘ480 60Hz 程度でお好きに  
 ```
 
+## 4.2. SPI液晶を使用するための設定
 ### fbtftドライバの設定
 SPI接続の液晶を使用するために、SPI経由で液晶ディスプレイを制御できるfbtftドライバを使用する。  
 「/etc/modules」以下の行を追加してドライバモジュールを有効にする。
@@ -90,7 +90,7 @@ raspi-config
 7 Advanved Options -> A4 Audio -> 1 Force 3.5mm ('headphone') jack を選択
 ```
 
-## 3.2. fbcpの導入
+## 4.3. fbcpの導入
 HDMI出力用フレームバッファ（/dev/fb0）を、SPI-LCD出力用フレームバッファ（/dev/fb1）にコピーするために、fbcpを用いる。
 ツールをソースからコンパイルするためにcmakeとgitをインストール
 ```
@@ -110,7 +110,7 @@ $ sudo install fbcp /usr/local/bin/fbcp
 ```
 fbcpをOS起動時に自動起動させたい場合は、「/etc/rc.local」中の「exit 0」行の直上に「fbcp &」という行を追加する。
 
-## 3.3. 動作確認
+# 5. 動作確認
 ここまでの設定が完了すれば、以下のコマンドによりディスクトップ画面がSPI液晶に表示されるはず。
 ```
 $ fbcp &
