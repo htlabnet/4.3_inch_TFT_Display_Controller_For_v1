@@ -61,11 +61,12 @@ module spi_display_controller_top (
         .i_spi_mosi ( SPI_MOSI ),               // SPI_MOSI
         .o_pixel_data ( w_pixel_data[15:0] ),   // 受信データ
         .o_pixel_en_pls ( w_pixel_en ),         // 受信データ有効
-        .o_vsync_pls ( w_vsync_pls )			// SRAM Write Addrリセット信号
+        .o_vsync_pls ( w_vsync_pls )            // SRAM Write Addrリセット信号
     );
 
-    assign oDbgSig1 = w_vsync_pls;
-    assign oDbgSig2 = w_pixel_en;
+	// debug
+    //assign oDbgSig1 = w_vsync_pls;
+    //assign oDbgSig2 = w_pixel_en;
     
 
     /**************************************************************
