@@ -1,6 +1,6 @@
 # 概要
 Raspberry PiにTFT Display ControllerをSPI接続して、ディスクトップ画面を出力する方法について説明する。  
-CPLDには「Firmware\SPI_Mode(RasPi)_FPGA」のpofファイルを書き込んでおく。  
+CPLDには「[SPI_Mode(RasPi)_FPGA](../Firmware/SPI_Mode(RasPi)_FPGA)」のpofファイルを書き込んでおく。  
 RasPi2B及びRasPi3Bにて動作確認済み。
 
 # 1. RasPiとコントローラボードの接続
