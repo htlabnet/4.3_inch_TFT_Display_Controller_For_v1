@@ -115,7 +115,7 @@ fbcpをOS起動時に自動起動させたい場合は、「/etc/rc.local」中�
 ```
 $ fbcp &
 ```
-
+RasPi3Bで試したところ、フレームレートは20fps程度となった。CPU負荷状態によって若干変動するが、ブラウザでYouTube再生してもそこそこ滑らかに視聴できた。
 
 ## 参考リンク
 * 超ちっちゃいCS無しの激安IPS液晶にRaspberry Piから画面を出す方法。[https://www.omorodive.com/2019/08/raspberrypi-no-cs-lcd.html](https://www.omorodive.com/2019/08/raspberrypi-no-cs-lcd.html)
