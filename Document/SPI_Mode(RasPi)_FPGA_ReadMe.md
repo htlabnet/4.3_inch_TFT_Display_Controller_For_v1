@@ -71,11 +71,10 @@ $ sudo vi /etc/modprobe.d/fbtft.conf
 記載する内容
 パラメータの意味については[こちら](https://github.com/notro/fbtft/wiki/flexfb)を参照。
 ```
-options fbtft_device name=flexfb gpios=reset:27,dc:25,led:24 speed=80000000 bgr=1 fps=60 custom=1 height=272 width=480 mode=3
-options flexfb setaddrwin=0 width=480 height=272 init=-3
+options fbtft_device name=flexfb speed=80000000 bgr=1 fps=60 txbuflen=-1 custom=1 width=480 height=272 mode=3
+options flexfb setaddrwin=0 width=480 height=272 init=-1,0x01,-2,150,-1,0x29,-2,10,-3
 ```
-
-setaddrwinについてはST7735r(ST7789VW)と一部コマンドの互換性をもたせて作っているため"0"を指定。
+setaddrwinについてはST7735Rとコマンドの互換性をもたせて作っているため"0"を指定。
 ```
 Which set_addr_win() implementation to use
 0 - st7735r, hx8340
