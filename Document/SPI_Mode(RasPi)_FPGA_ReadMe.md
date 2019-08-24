@@ -128,13 +128,13 @@ $ fbcp &
 RasPi3Bで試したところ、フレームレートは20fps程度となった。CPU負荷状態によって若干変動するが、ブラウザでYouTube再生してもそこそこ滑らかに視聴できた。
 
 
-# CPLDについて
+# 6. CPLDについて
 TFT Controller/Driver ICのST7735Rにコマンドを似せて作成しています。  
 ST7735Rを4 Line serial Interfaceモードで使用する場合、ピクセルデータ転送フォーマットは以下のようになります。RasPiからはこのフォーマットに従ってデータを送出しています。  
 ![ST7735R_4-line_serial_Interface_dataFormat](img/ST7735R_4-line_serial_Interface_dataFormat.png)
 
 
-# 参考リンク
+# 7. 参考リンク
 * 超ちっちゃいCS無しの激安IPS液晶にRaspberry Piから画面を出す方法。[https://www.omorodive.com/2019/08/raspberrypi-no-cs-lcd.html](https://www.omorodive.com/2019/08/raspberrypi-no-cs-lcd.html)
 * flexfb - wiki [https://github.com/notro/fbtft/wiki/flexfb](https://github.com/notro/fbtft/wiki/flexfb)
 * ST7735R DataSheet(pdf) [https://cdn-shop.adafruit.com/datasheets/ST7735R_V0.2.pdf](https://cdn-shop.adafruit.com/datasheets/ST7735R_V0.2.pdf)
