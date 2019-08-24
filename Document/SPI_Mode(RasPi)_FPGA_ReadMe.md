@@ -69,9 +69,19 @@ fbtftの設定を行うため、以下の手順で「/etc/modprobe.d」直下に
 $ sudo vi /etc/modprobe.d/fbtft.conf
 ```
 記載する内容
+パラメータの意味については[こちら](https://github.com/notro/fbtft/wiki/flexfb)を参照。
 ```
 options fbtft_device name=flexfb gpios=reset:27,dc:25,led:24 speed=80000000 bgr=1 fps=60 custom=1 height=272 width=480 mode=3
 options flexfb setaddrwin=0 width=480 height=272 init=-3
+```
+
+setaddrwinについてはST7735r(ST7789VW)と一部コマンドの互換性をもたせて作っているため"0"を指定。
+```
+Which set_addr_win() implementation to use
+0 - st7735r, hx8340
+1 - ili9320, ili9325
+2 - ssd1289
+3 - ssd1351
 ```
 
 ### SPIの有効化
@@ -117,5 +127,14 @@ $ fbcp &
 ```
 RasPi3Bで試したところ、フレームレートは20fps程度となった。CPU負荷状態によって若干変動するが、ブラウザでYouTube再生してもそこそこ滑らかに視聴できた。
 
-## 参考リンク
+
+# CPLDについて
+TFT Controller/Driver ICのST7735Rにコマンドを似せて作成しています。  
+ST7735Rを4 Line serial Interfaceモードで使用する場合、ピクセルデータ転送フォーマットは以下のようになります。RasPiからはこのフォーマットに従ってデータを送出しています。  
+![ST7735R_4-line_serial_Interface_dataFormat](img/ST7735R_4-line_serial_Interface_dataFormat.png)
+
+
+# 参考リンク
 * 超ちっちゃいCS無しの激安IPS液晶にRaspberry Piから画面を出す方法。[https://www.omorodive.com/2019/08/raspberrypi-no-cs-lcd.html](https://www.omorodive.com/2019/08/raspberrypi-no-cs-lcd.html)
+* flexfb - wiki [https://github.com/notro/fbtft/wiki/flexfb](https://github.com/notro/fbtft/wiki/flexfb)
+* ST7735R DataSheet(pdf) [https://cdn-shop.adafruit.com/datasheets/ST7735R_V0.2.pdf](https://cdn-shop.adafruit.com/datasheets/ST7735R_V0.2.pdf)
