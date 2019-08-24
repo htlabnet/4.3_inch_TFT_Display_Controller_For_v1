@@ -14,21 +14,25 @@ module spi_slave (
     output  reg             o_vsync_pls     // 垂直同期用パルス
 );
 
+    /**************************************************************
+     *  ST7789VW Instruction
+     *************************************************************/
+    localparam CMD_RAMWR    = 8'h2C;    // Memory Write
+
 
     /**************************************************************
-     *  SPI_CSに同期した8bit単位でのデータ取得
+     * RAMWR Instructionを検出して、垂直同期用パルスを生成する。
      *************************************************************/
-    // SPI_CLKの立ち上がりエッジでSPI_MOSI内容取得(8bit)
-    reg [7:0] r_mosi_shift_8;
-    reg [7:0] r_mosi_8bitCnt;
-    reg       r_mosi_8bit_ok;
+    reg [7:0] r_mosi_shift_8;   // 受信データ
+    reg [7:0] r_mosi_8bitCnt;   // 受信bit数検知用
+    reg       r_mosi_8bit_ok;   // 受信bit数 = 8bitでアサート
     always @(posedge i_spi_clk or posedge i_spi_cs) begin
         if (i_spi_cs) begin
             r_mosi_8bitCnt[7:0] <= 8'd1;
         end else begin
             r_mosi_shift_8[7:0] <= {r_mosi_shift_8[6:0], i_spi_mosi};
             r_mosi_8bitCnt[7:0] <= {r_mosi_8bitCnt[6:0], 1'b0};
-            r_mosi_8bit_ok      <= r_mosi_8bitCnt[7];    // SPI_CS=Low期間にSPI_CLKが8発ならアサート
+            r_mosi_8bit_ok      <= r_mosi_8bitCnt[7];
         end
     end
 
@@ -43,17 +47,15 @@ module spi_slave (
     end
     wire    w_cs_posedge_dt = (r_cs_ff[2:1] == 2'b01);
 
-    // SPI_CS信号の立ち上がりで受信データ確定
-    // 垂直同期を取るためにRAMWR(0x2C)コマンドを検出する
-    reg [7:0] r_mosi_old;
+    // SPI_CS信号の立ち上がりエッジ検出で受信データ確定
+    // 垂直同期を取るためにRAMWRコマンドを検出する
     always @(posedge i_clk or negedge i_rst_n) begin
         if (~i_rst_n) begin
             o_vsync_pls <= 1'b0;
-            r_mosi_old <= 8'd0;
         end else begin
             if (w_cs_posedge_dt) begin
-                r_mosi_old <= r_mosi_shift_8[7:0];
-                if (r_mosi_shift_8[7:0] == 8'h2C && r_mosi_8bit_ok) begin
+                // 受信bit数 = 8bit かつ RAMWR Instruction
+                if (r_mosi_8bit_ok && r_mosi_shift_8[7:0] == CMD_RAMWR) begin
                     o_vsync_pls <= 1'b1;
                 end
             end else begin
@@ -64,7 +66,7 @@ module spi_slave (
 
 
     /**************************************************************
-     *  16bit単位でデータ取得
+     *  ピクセルデータの取得16bit単位でデータ取得
      *************************************************************/
     reg [15:0]  r_mosi_shift_16;
     reg [15:0]  r_mosi_16;
