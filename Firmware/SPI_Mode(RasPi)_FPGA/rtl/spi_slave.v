@@ -20,11 +20,15 @@ module spi_slave (
      *************************************************************/
     // SPI_CLKの立ち上がりエッジでSPI_MOSI内容取得(8bit)
     reg [7:0] r_mosi_shift_8;
-    always @(posedge i_spi_clk or negedge i_rst_n) begin
-        if (~i_rst_n) begin
-            r_mosi_shift_8[7:0] <= 8'd0;
+    reg [7:0] r_mosi_8bitCnt;
+    reg       r_mosi_8bit_ok;
+    always @(posedge i_spi_clk or posedge i_spi_cs) begin
+        if (i_spi_cs) begin
+            r_mosi_8bitCnt[7:0] <= 8'd1;
         end else begin
             r_mosi_shift_8[7:0] <= {r_mosi_shift_8[6:0], i_spi_mosi};
+            r_mosi_8bitCnt[7:0] <= {r_mosi_8bitCnt[6:0], 1'b0};
+            r_mosi_8bit_ok      <= r_mosi_8bitCnt[7];    // SPI_CS=Low期間にSPI_CLKが8発ならアサート
         end
     end
 
@@ -49,7 +53,7 @@ module spi_slave (
         end else begin
             if (w_cs_posedge_dt) begin
                 r_mosi_old <= r_mosi_shift_8[7:0];
-                if (r_mosi_shift_8[7:0] == 8'h2C && r_mosi_old[7:0] == 8'h0F) begin
+                if (r_mosi_shift_8[7:0] == 8'h2C && r_mosi_8bit_ok) begin
                     o_vsync_pls <= 1'b1;
                 end
             end else begin
