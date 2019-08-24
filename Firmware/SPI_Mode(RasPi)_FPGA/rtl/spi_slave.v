@@ -1,5 +1,5 @@
 /*************************************************************
- * Title : SPI Slave for RasPi SPI Display (ST7789VW)
+ * Title : SPI Slave for RasPi SPI Display (ST7735R)
  * Date  : 2019/8/6
  *************************************************************/
 module spi_slave (
@@ -11,21 +11,16 @@ module spi_slave (
 
     output  wire    [15:0]  o_pixel_data,   // 画素データ
     output  reg             o_pixel_en_pls, // 画素データ有効パルス出力
-    output  reg             o_vsync_pls     // 垂直同期用パルス
+    output  reg     [ 7:0]  o_inst_data,    // Instruction Data
+    output  reg             o_inst_en_pls   // Instruction Data 有効パルス出力
 );
 
     /**************************************************************
-     *  ST7789VW Instruction
+     * Instructionの検出
      *************************************************************/
-    localparam CMD_RAMWR    = 8'h2C;    // Memory Write
-
-
-    /**************************************************************
-     * RAMWR Instructionを検出して、垂直同期用パルスを生成する。
-     *************************************************************/
-    reg [7:0] r_mosi_shift_8;   // 受信データ
-    reg [7:0] r_mosi_8bitCnt;   // 受信bit数検知用
-    reg       r_mosi_8bit_ok;   // 受信bit数 = 8bitでアサート
+    reg [ 7:0]  r_mosi_shift_8;     // 受信データ
+    reg [ 7:0]  r_mosi_8bitCnt;     // 受信bit数検知用
+    reg         r_mosi_8bit_ok;     // 受信bit数 = 8bitでアサート
     always @(posedge i_spi_clk or posedge i_spi_cs) begin
         if (i_spi_cs) begin
             r_mosi_8bitCnt[7:0] <= 8'd1;
@@ -37,7 +32,7 @@ module spi_slave (
     end
 
     // SPI_CS信号の同期化と立ち上がりエッジ検出
-    reg [2:0] r_cs_ff;
+    reg [ 2:0]  r_cs_ff;
     always @(posedge i_clk or negedge i_rst_n) begin
         if (~i_rst_n) begin
             r_cs_ff[2:0] <= 3'b111;
@@ -51,15 +46,17 @@ module spi_slave (
     // 垂直同期を取るためにRAMWRコマンドを検出する
     always @(posedge i_clk or negedge i_rst_n) begin
         if (~i_rst_n) begin
-            o_vsync_pls <= 1'b0;
+            o_inst_data[7:0] <= 8'd0;
+            o_inst_en_pls <= 1'b0;
         end else begin
             if (w_cs_posedge_dt) begin
                 // 受信bit数 = 8bit かつ RAMWR Instruction
-                if (r_mosi_8bit_ok && r_mosi_shift_8[7:0] == CMD_RAMWR) begin
-                    o_vsync_pls <= 1'b1;
+                if (r_mosi_8bit_ok) begin
+                    o_inst_data[7:0] <= r_mosi_shift_8[7:0];
+                    o_inst_en_pls <= 1'b1;
                 end
             end else begin
-                o_vsync_pls <= 1'b0;
+                o_inst_en_pls <= 1'b0;
             end
         end
     end
@@ -70,8 +67,8 @@ module spi_slave (
      *************************************************************/
     reg [15:0]  r_mosi_shift_16;
     reg [15:0]  r_mosi_16;
-    reg [3:0]   r_mosi_16_bitCnt;
-    reg [1:0]   r_mosi_16_fin_flg;
+    reg [ 3:0]  r_mosi_16_bitCnt;
+    reg [ 1:0]  r_mosi_16_fin_flg;
     always @(posedge i_spi_clk or posedge i_spi_cs) begin
         if (i_spi_cs) begin
             r_mosi_shift_16[15:0] <= 16'd0;
@@ -92,7 +89,7 @@ module spi_slave (
     wire    w_mosi_16_fin = (|r_mosi_16_fin_flg[1:0]);
 
     // w_mosi_16_finの立ち上がりエッジ検出
-    reg [2:0]   r_mosi_16_fin_ff;
+    reg [ 2:0]  r_mosi_16_fin_ff;
     always @(posedge i_clk or negedge i_rst_n) begin
         if (~i_rst_n) begin
             r_mosi_16_fin_ff[2:0] <= 3'd0;

@@ -129,8 +129,18 @@ RasPi3Bで試したところ、フレームレートは20fps程度となった�
 
 
 # 6. CPLDについて
-TFT Controller/Driver ICのST7735Rにコマンドを似せて作成しています。  
-ST7735Rを4 Line serial Interfaceモードで使用する場合、ピクセルデータ転送フォーマットは以下のようになります。RasPiからはこのフォーマットに従ってデータを送出しています。  
+TFT Controller/Driver ICであるST7735RのInstructionと互換性があります。実装されているInstructionは以下のとおりです。  
+
+| Instruction               | Code | 説明                                                |
+|:--------------------------|:-----|-----------------------------------------------------|
+| NOP (No Operation)        | 0x00 | 無操作                                              |
+| SWRESET (Software Reset)  | 0x01 | SRAM内容をAllクリアする。同時にDisplay Off状態となる。 |
+| DISPOFF (Display Off)     | 0x28 | Displayを真っ黒にする。SRAM内容はクリアされない。      |
+| DISPON (Display On)       | 0x29 | DisplayにSRAM内容を表示する。                        |
+| RAMWR (Memory Write)      | 0x2C | SRAMにピクセルデータを書き込む。                      |
+
+ST7735Rを4 Line serial Interfaceモードで使用する場合、ピクセルデータ転送フォーマットは以下のようになります。  
+RAMWRを送るとSRAM書き込みアドレスがリセットされるので、その後にピクセルデータを送信します。  
 ![ST7735R_4-line_serial_Interface_dataFormat](img/ST7735R_4-line_serial_Interface_dataFormat.png)
 
 
