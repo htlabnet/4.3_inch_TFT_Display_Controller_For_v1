@@ -71,7 +71,7 @@ $ sudo vi /etc/modprobe.d/fbtft.conf
 記載する内容
 パラメータの意味については[こちら](https://github.com/notro/fbtft/wiki/flexfb)を参照。
 ```
-options fbtft_device name=flexfb speed=80000000 bgr=1 fps=60 txbuflen=-1 custom=1 width=480 height=272 mode=3
+options fbtft_device name=flexfb speed=80000000 fps=60 width=480 height=272
 options flexfb setaddrwin=0 width=480 height=272 init=-1,0x01,-2,150,-1,0x29,-2,10,-3
 ```
 setaddrwinについてはST7735Rとコマンドの互換性をもたせて作っているため"0"を指定。
@@ -82,6 +82,11 @@ Which set_addr_win() implementation to use
 2 - ssd1289
 3 - ssd1351
 ```
+init=以下は初期化シーケンスを示す。マーカーの意味は以下の通り。
+```
+Init sequence Markers: -1: command begin, -2: millisecond delay, -3: end of init sequence
+```
+Software Reset => 150ms Delay => Display On => 10ms Delay => Done.
 
 ### SPIの有効化
 raspi-config  
