@@ -21,6 +21,18 @@ module spi_slave (
 );
 
     /**************************************************************
+     *  ST7735R Instruction
+     *************************************************************/
+    localparam CMD_NOP      = 8'h00;    // No Operation
+    localparam CMD_SWRESET  = 8'h01;    // Software reset
+    localparam CMD_DISPOFF  = 8'h28;    // Display Off
+    localparam CMD_DISPON   = 8'h29;    // Display On
+    localparam CMD_CASET    = 8'h2A;    // Column Address Set
+    localparam CMD_RASET    = 8'h2B;    // Row Address Set
+    localparam CMD_RAMWR    = 8'h2C;    // Memory Write
+
+
+    /**************************************************************
      * Instructionの検出
      *************************************************************/
     reg [ 7:0]  r_mosi_shift_8;     // 受信データ
@@ -93,22 +105,20 @@ module spi_slave (
                     r_inst_byte_cnt[1:0] <= 2'd0;
                 end else begin
                     // RAMWR
-                    if (o_inst_data[7:0] == 8'h2C) begin
+                    if (o_inst_data[7:0] == CMD_RAMWR) begin
                         // ピクセルデータ取得
                         r_mosi_16_pixel_data[15:0] <= {r_mosi_16_pixel_data[7:0], r_mosi_8bit_fix[7:0]};
                         r_pixel_data_fin <= ~r_pixel_data_fin;
-
                         if (r_pixel_data_fin) begin
-                            o_pixel_en_pls <= 1'b1;
+                            o_pixel_en_pls <= r_pixel_data_fin;
                         end
-                    end else if (o_inst_data[7:0] == 8'h2A) begin
+                    end else if (o_inst_data[7:0] == CMD_CASET) begin
                         // Column Address Set
                         o_col_addr [31:0] <= {o_col_addr[23:0], r_mosi_8bit_fix[7:0]};
-                    end else if (o_inst_data[7:0] == 8'h2B) begin
+                    end else if (o_inst_data[7:0] == CMD_RASET) begin
                         // Row Address set
                         o_row_addr [31:0] <= {o_row_addr[23:0], r_mosi_8bit_fix[7:0]};
                         r_inst_byte_cnt[1:0] <= r_inst_byte_cnt[1:0] + 2'd1;
-                        
                         if (r_inst_byte_cnt[1:0] == 2'd3) begin
                             o_row_addr_en_pls <= 1'b1;
                         end
