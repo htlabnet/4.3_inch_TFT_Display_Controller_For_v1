@@ -100,8 +100,6 @@ module spi_display_controller_top (
     reg         r_sram_waddr_set_req_fin;   // SRAM書き込みアドレスセット要求完了
     reg         r_dispOn;                   // Display ON
 
-    reg [8:0]   r_pos_win_x;
-    reg [8:0]   r_pos_win_y;
     always @(posedge mco or negedge rst_n) begin
         if (~rst_n) begin
             r_sram_write_req <= 1'b0;
@@ -151,6 +149,9 @@ module spi_display_controller_top (
     reg             r_sram_OE;
     reg             r_sram_WE;
     reg             r_sram_clr_busy;
+    reg     [8:0]   r_pos_win_x;
+    reg     [8:0]   r_pos_win_y;
+    wire    [23:0]  w_sram_wdata;
     always @(posedge mco or negedge rst_n) begin
         if (~rst_n) begin
             r_state[1:0] <= 2'd0;
@@ -161,8 +162,8 @@ module spi_display_controller_top (
             r_sram_write_req_fin <= 1'b0;
             r_sram_waddr_set_req_fin <= 1'b0;
             r_sram_clr_req_fin <= 1'b0;
-            r_pos_win_x <= 9'd0;
-            r_pos_win_y <= 9'd0;
+            r_pos_win_x[8:0] <= 9'd0;
+            r_pos_win_y[8:0] <= 9'd0;
         end else begin
             case (r_state[1:0])
                 2'b00: begin
@@ -184,13 +185,13 @@ module spi_display_controller_top (
                         end
                     end else if (r_sram_write_req) begin
                         // ポジション更新
-                        r_pos_win_x <= r_pos_win_x + 9'd1;
-                        if (r_pos_win_x >= w_col_addr[8:0]) begin  // 右端
-                            r_pos_win_x <= w_col_addr[24:16];       // Xポジションを開始位置に
+                        r_pos_win_x[8:0] <= r_pos_win_x[8:0] + 9'd1;
+                        if (r_pos_win_x[8:0] >= w_col_addr[8:0]) begin  // 右端
+                            r_pos_win_x[8:0] <= w_col_addr[24:16];      // Xポジションを開始位置に
 
-                            r_pos_win_y <= r_pos_win_y + 9'd1;
-                            if (r_pos_win_y >= w_row_addr[8:0]) begin
-                                r_pos_win_y <= w_row_addr[24:16];   // Yポジションを開始位置に
+                            r_pos_win_y[8:0] <= r_pos_win_y[8:0] + 9'd1;
+                            if (r_pos_win_y[8:0] >= w_row_addr[8:0]) begin
+                                r_pos_win_y[8:0] <= w_row_addr[24:16];  // Yポジションを開始位置に
                             end
                         end
 
@@ -203,8 +204,8 @@ module spi_display_controller_top (
                         r_sram_write_req_fin <= 1'b1;
                     end else if (r_sram_waddr_set_req) begin
                         r_sram_waddr_set_req_fin <= 1'b1;
-                        r_pos_win_x <= w_col_addr[24:16];    // Xポジションを開始位置に
-                        r_pos_win_y <= w_row_addr[24:16];    // Yポジションを開始位置に
+                        r_pos_win_x[8:0] <= w_col_addr[24:16];    // Xポジションを開始位置に
+                        r_pos_win_y[8:0] <= w_row_addr[24:16];    // Yポジションを開始位置に
                     end else begin
                         r_sram_write_req_fin <= 1'b0;
                         r_sram_waddr_set_req_fin <= 1'b0;
@@ -235,12 +236,12 @@ module spi_display_controller_top (
     assign oSRAMWriteEnablePort  = ~r_sram_WE;
     assign oSRAMOutputEnablePort = ~r_sram_OE;
     // 書き込みデータ
-    wire    [23:0]  w_sram_wdata = (r_sram_clr_req | r_sram_clr_busy) ? 24'd0 :
+    assign w_sram_wdata[23:0]    = (r_sram_clr_req | r_sram_clr_busy) ? 24'd0 :
     //                               PAD,          B (5bit),           G (6bit),            R (5bit)
-                                   {8'b0, w_pixel_data[4:0], w_pixel_data[10:5], w_pixel_data[15:11]};
+                                  {8'b0, w_pixel_data[4:0], w_pixel_data[10:5], w_pixel_data[15:11]};
     // SRAMデータポート制御
-    assign ioSRAMDataPort = r_sram_WE ? w_sram_wdata : 
-                            ~r_dispOn ? 24'd0        : 24'bzzzzzzzzzzzzzzzzzzzzzzzz;
+    assign ioSRAMDataPort[23:0]  = r_sram_WE ? w_sram_wdata[23:0] : 
+                                   ~r_dispOn ? 24'd0              : 24'bzzzzzzzzzzzzzzzzzzzzzzzz;
     
 
     /**************************************************************

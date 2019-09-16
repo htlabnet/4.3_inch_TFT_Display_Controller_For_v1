@@ -23,10 +23,6 @@ module spi_slave (
     /**************************************************************
      *  ST7735R Instruction
      *************************************************************/
-    localparam CMD_NOP      = 8'h00;    // No Operation
-    localparam CMD_SWRESET  = 8'h01;    // Software reset
-    localparam CMD_DISPOFF  = 8'h28;    // Display Off
-    localparam CMD_DISPON   = 8'h29;    // Display On
     localparam CMD_CASET    = 8'h2A;    // Column Address Set
     localparam CMD_RASET    = 8'h2B;    // Row Address Set
     localparam CMD_RAMWR    = 8'h2C;    // Memory Write
