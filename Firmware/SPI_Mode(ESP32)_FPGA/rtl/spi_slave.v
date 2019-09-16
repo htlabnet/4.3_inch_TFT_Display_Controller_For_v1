@@ -15,9 +15,11 @@ module spi_slave (
     output  reg     [ 7:0]  o_inst_data,    // Instruction Data
     output  reg             o_inst_en_pls,  // Instruction Data 有効パルス出力
 
-    output  reg     [15:0]  o_row_addr,
-    output  reg             o_row_addr_en_pls
+    output  reg     [31:0]  o_row_addr,     // YS15:0[31:16], YE15:0[15:0]
+    output  reg             o_row_addr_en_pls,
 
+    output  reg     [31:0]  o_col_addr,     // XS15:0[31:16], XE15:0[15:0]
+    output  reg             o_col_addr_en_pls
 );
 
     /**************************************************************
@@ -72,14 +74,16 @@ module spi_slave (
     // 受信データ処理
     reg [15:0]  r_mosi_16_pixel_data;
     reg         r_pixel_data_fin;
-    reg [3:0]   r_raw_addr_cnt;
+    reg [1:0]   r_inst_byte_cnt;
     always @(posedge i_clk or negedge i_rst_n) begin
         if (~i_rst_n) begin
             o_inst_data[7:0] <= 8'd0;
             o_inst_en_pls <= 1'b0;
             r_pixel_data_fin <= 1'b0;
-            o_row_addr[15:0] <= 16'd0;
-            r_raw_addr_cnt[3:0] <= 4'd0;
+            o_col_addr[31:0] <= 32'd0;
+            r_inst_byte_cnt[1:0] <= 2'd0;
+            o_col_addr_en_pls <= 1'b0;
+            o_row_addr[31:0] <= 32'd0;
             o_row_addr_en_pls <= 1'b0;
             o_pixel_en_pls <= 1'b0;
         end else begin
@@ -89,7 +93,7 @@ module spi_slave (
                     o_inst_data[7:0] <= r_mosi_8bit_fix[7:0];
                     o_inst_en_pls <= 1'b1;
                     r_pixel_data_fin <= 1'b0;
-                    r_raw_addr_cnt[3:0] <= 4'd0;
+                    r_inst_byte_cnt[1:0] <= 2'd0;
                 end else begin
                     // RAMWR
                     if (o_inst_data[7:0] == 8'h2C) begin
@@ -100,12 +104,20 @@ module spi_slave (
                         if (r_pixel_data_fin) begin
                             o_pixel_en_pls <= 1'b1;
                         end
+                    end else if (o_inst_data[7:0] == 8'h2A) begin
+                        // Column Address Set
+                        o_col_addr [31:0] <= {o_col_addr[23:0], r_mosi_8bit_fix[7:0]};
+                        r_inst_byte_cnt[1:0] <= r_inst_byte_cnt[1:0] + 2'd1;
+                        
+                        if (r_inst_byte_cnt[1:0] == 2'd3) begin
+                            o_col_addr_en_pls <= 1'b1;
+                        end
                     end else if (o_inst_data[7:0] == 8'h2B) begin
                         // Row Address set
-                        o_row_addr [15:0] <= {o_row_addr[7:0], r_mosi_8bit_fix[7:0]};
-                        r_raw_addr_cnt[3:0] <= r_raw_addr_cnt[3:0] + 4'd1;
+                        o_row_addr [31:0] <= {o_row_addr[23:0], r_mosi_8bit_fix[7:0]};
+                        r_inst_byte_cnt[1:0] <= r_inst_byte_cnt[1:0] + 2'd1;
                         
-                        if (r_raw_addr_cnt[3:0] == 4'd1) begin
+                        if (r_inst_byte_cnt[1:0] == 2'd3) begin
                             o_row_addr_en_pls <= 1'b1;
                         end
                     end
@@ -113,6 +125,7 @@ module spi_slave (
             end else begin
                 o_inst_en_pls <= 1'b0;
                 o_pixel_en_pls <= 1'b0;
+                o_col_addr_en_pls <= 1'b0;
                 o_row_addr_en_pls <= 1'b0;
             end
         end

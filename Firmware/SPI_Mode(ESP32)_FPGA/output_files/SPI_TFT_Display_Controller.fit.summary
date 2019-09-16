@@ -1,11 +1,11 @@
-Fitter Status : Successful - Mon Sep 16 19:20:02 2019
+Fitter Status : Successful - Mon Sep 16 23:33:38 2019
 Quartus Prime Version : 18.1.0 Build 625 09/12/2018 SJ Lite Edition
 Revision Name : SPI_TFT_Display_Controller
 Top-level Entity Name : spi_display_controller_top
 Family : MAX II
 Device : EPM570T144C5
 Timing Models : Final
-Total logic elements : 288 / 570 ( 51 % )
+Total logic elements : 433 / 570 ( 76 % )
 Total pins : 63 / 116 ( 54 % )
 Total virtual pins : 0
 UFM blocks : 0 / 1 ( 0 % )
