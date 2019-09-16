@@ -27,11 +27,7 @@ module spi_display_controller_top (
     output  reg     [17:0]  oSRAMAddrPort,
     inout   reg     [23:0]  ioSRAMDataPort,
     output  wire            oSRAMWriteEnablePort,
-    output  wire            oSRAMOutputEnablePort,
-
-    // debug
-    output  wire            oDbgSig1
-    //output  wire            oDbgSig2
+    output  wire            oSRAMOutputEnablePort
     );
 
     
@@ -91,23 +87,7 @@ module spi_display_controller_top (
         .o_row_addr ( w_row_addr[31:0] ),       // Row Address
         .o_row_addr_en_pls ( w_row_addr_en ),   // Row Address enable
         .o_col_addr ( w_col_addr[31:0] ),       // Column Address
-        .o_col_addr_en_pls ( w_col_addr_en )    // Column Address enable
-    );
-
-    // debug
-    assign oDbgSig1 = r_oDbgSig1;
-    //assign oDbgSig2 = w_pixel_en;
-
-    // 垂直同期Debug用
-    reg r_oDbgSig1;
-    always @(posedge mco or negedge rst_n) begin
-        if (~rst_n) begin
-            r_oDbgSig1 <= 1'b0;
-        end else if (w_inst_en && w_inst_data[7:0] == CMD_RAMWR) begin
-            r_oDbgSig1 <= ~r_oDbgSig1;
-        end
-    end
-    
+    );    
 
     /**************************************************************
      *  Instrucion分岐 / データ書き込み要求処理
@@ -144,8 +124,6 @@ module spi_display_controller_top (
                     CMD_RASET   : ;
                     default     : ;                                 // NOP
                 endcase
-            end else if (w_col_addr_en) begin
-                // Column Address Set
             end else if (w_row_addr_en) begin
                 // RAM Addr Re Setting
                 r_sram_waddr_set_req <= 1'b1;
@@ -230,10 +208,9 @@ module spi_display_controller_top (
                         end
 
                         // 次SRAM Writeアドレス計算
-                        r_sramWriteAddr[16:0] <= ({8'd0, r_pos_win_y[8:0]} * DispWidth) + {8'd0, r_pos_win_x[8:0]};
+                        r_sramWriteAddr[16:0] <= ({8'd0, r_pos_win_y[8:0]} * DispWidth) + {8'd0, r_pos_win_x[8:0]} + 
+                                                 (iModeSelectorPort[0] ? 17'd480 : 17'd0);
 
-                        // 書き込み後アドレス自動インクリメント
-                        //r_sramWriteAddr[16:0] <= r_sramWriteAddr[16:0] + 17'd1;
                         // 書き込みデータ
                         //                        PAD,          B (5bit),           G (6bit),            R (5bit)
                         ioSRAMDataPort[23:0] <= {8'b0, w_pixel_data[4:0], w_pixel_data[10:5], w_pixel_data[15:11]};
@@ -246,10 +223,11 @@ module spi_display_controller_top (
                         r_sram_waddr_rst_req_fin <= 1'b1;
                     end else if (r_sram_waddr_set_req) begin
                         // アドレス再設定
-                        r_sramWriteAddr[16:0] <= ({1'd0, w_row_addr[31:16]} * DispWidth) + {1'd0, w_col_addr[31:16]};
+                        r_sramWriteAddr[16:0] <= ({1'd0, w_row_addr[31:16]} * DispWidth) + {1'd0, w_col_addr[31:16]} +
+                                                 (iModeSelectorPort[0] ? 17'd480 : 17'd0);
                         r_sram_waddr_set_req_fin <= 1'b1;
-                        r_pos_win_x <= w_col_addr[24:16] + 9'd1;   // Xポジションを開始位置に
-                        r_pos_win_y <= w_row_addr[24:16];   // Yポジションを開始位置に
+                        r_pos_win_x <= w_col_addr[24:16] + 9'd1;    // Xポジションを開始位置に
+                        r_pos_win_y <= w_row_addr[24:16];           // Yポジションを開始位置に
                     end else begin
                         r_sram_write_req_fin <= 1'b0;
                         r_sram_waddr_rst_req_fin <= 1'b0;
