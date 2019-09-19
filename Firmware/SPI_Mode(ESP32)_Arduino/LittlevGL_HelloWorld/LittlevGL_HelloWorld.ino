@@ -70,7 +70,7 @@ void setup() {
 #endif
 
   tft.begin(); /* TFT init */
-  tft.setRotation(1); /* Landscape orientation */
+  tft.setRotation(0); /* Landscape orientation */
 
   lv_disp_buf_init(&disp_buf, buf, NULL, LV_HOR_RES_MAX * 10);
 

@@ -5,23 +5,12 @@
 #define LVGL_TICK_PERIOD 20
 
 Ticker tick; /* timer for interrupt handler */
-Ticker slider_inc;
-uint8_t slider_value = 0;
 
 TFT_eSPI tft = TFT_eSPI(); /* TFT instance */
 static lv_disp_buf_t disp_buf;
 static lv_color_t buf[LV_HOR_RES_MAX * 10];
 
-static lv_obj_t * slider;
-
-void slider_increment() {
-  slider_value = slider_value + 1;
-  if (slider_value > 100) {
-    slider_value = 0;
-  }
-  lv_slider_set_value(slider, slider_value, false);
-}
-
+lv_style_t btn3_style;
 
 #if USE_LV_LOG != 0
 /* Serial debugging */
@@ -108,61 +97,82 @@ void setup() {
   /*Initialize the graphics library's tick*/
   tick.attach_ms(LVGL_TICK_PERIOD, lv_tick_handler);
 
-  /* Create simple label */
-  lv_obj_t *label = lv_label_create(lv_scr_act(), NULL);
-  lv_label_set_text(label, "Object usage demo");
-  lv_obj_set_x(label, 50);
-  lv_obj_set_y(label, 10);
+  lv_obj_t * scr = lv_disp_get_scr_act(NULL);   /*Get the current screen*/
 
-  lv_obj_t * btn1 = lv_btn_create(lv_disp_get_scr_act(NULL), NULL);
-  //lv_obj_set_event_cb(btn1, btn_event_cb);
-  lv_obj_set_pos(btn1, 350, 10);
+  lv_obj_t * label;
+
+  /*Create a button the demonstrate built-in animations*/
+  lv_obj_t * btn1;
+  btn1 = lv_btn_create(scr, NULL);
+  lv_obj_set_pos(btn1, 10, 10);     /*Set a position. It will be the animation's destination*/
+  lv_obj_set_size(btn1, 80, 50);
+
   label = lv_label_create(btn1, NULL);
-  lv_label_set_text(label, "Button 1");
+  lv_label_set_text(label, "Float");
 
-  lv_obj_t * btn2 = lv_btn_create(lv_scr_act(), btn1);
-  lv_obj_align(btn2, btn1, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 20);
+  /* Float in the button using a built-in function
+   * Delay the animation with 2000 ms and float in 300 ms. NULL means no end callback*/
+  lv_anim_t a;
+  a.var = btn1;
+  a.start = -lv_obj_get_height(btn1);
+  a.end = lv_obj_get_y(btn1);
+  a.exec_cb = (lv_anim_exec_xcb_t)lv_obj_set_y;
+  a.path_cb = lv_anim_path_linear;
+  a.ready_cb = NULL;
+  a.act_time = -2000; /*Delay the animation*/
+  a.time = 300;
+  a.playback = 0;
+  a.playback_pause = 0;
+  a.repeat = 0;
+  a.repeat_pause = 0;
+  a.user_data = NULL;
+  lv_anim_create(&a);
+
+  /*Create a button to demonstrate user defined animations*/
+  lv_obj_t * btn2;
+  btn2 = lv_btn_create(scr, NULL);
+  lv_obj_set_pos(btn2, 10, 80);     /*Set a position. It will be the animation's destination*/
+  lv_obj_set_size(btn2, 80, 50);
+
   label = lv_label_create(btn2, NULL);
-  lv_label_set_text(label, "Button 2");
+  lv_label_set_text(label, "Move");
 
-  
-  lv_obj_t * btn3 = lv_btn_create(lv_scr_act(), btn1);
-  lv_obj_align(btn3, btn2, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 20);
+  /*Create an animation to move the button continuously left to right*/
+  a.var = btn2;
+  a.start = lv_obj_get_x(btn2);
+  a.end = a.start + (100);
+  a.exec_cb = (lv_anim_exec_xcb_t)lv_obj_set_x;
+  a.path_cb = lv_anim_path_linear;
+  a.ready_cb = NULL;
+  a.act_time = -1000;             /*Negative number to set a delay*/
+  a.time = 400;                 /*Animate in 400 ms*/
+  a.playback = 1;               /*Make the animation backward too when it's ready*/
+  a.playback_pause = 0;             /*Wait before playback*/
+  a.repeat = 1;                 /*Repeat the animation*/
+  a.repeat_pause = 500;             /*Wait before repeat*/
+  lv_anim_create(&a);
+
+  /*Create a button to demonstrate the style animations*/
+  lv_obj_t * btn3;
+  btn3 = lv_btn_create(scr, NULL);
+  lv_obj_set_pos(btn3, 10, 150);     /*Set a position. It will be the animation's destination*/
+  lv_obj_set_size(btn3, 80, 50);
+
   label = lv_label_create(btn3, NULL);
-  lv_label_set_text(label, "Button 3");
+  lv_label_set_text(label, "Style");
 
-  slider = lv_slider_create(lv_scr_act(), NULL);
-  lv_obj_set_size(slider, lv_obj_get_width(lv_scr_act())  / 3, LV_DPI / 3);
-  lv_obj_set_x(slider, 50);
-  lv_obj_set_y(slider, 60);
-  lv_slider_set_value(slider, slider_value, false);
+  /*Create a unique style for the button*/
+  lv_style_copy(&btn3_style, lv_btn_get_style(btn3, LV_BTN_STYLE_REL));
+  lv_btn_set_style(btn3, LV_BTN_STATE_REL, &btn3_style);
 
-  lv_obj_t * ddlist = lv_ddlist_create(lv_scr_act(), NULL);
-  lv_obj_align(ddlist, slider, LV_ALIGN_OUT_RIGHT_TOP, 50, 0);
-  lv_obj_set_top(ddlist, true);
-  lv_ddlist_set_options(ddlist, "None\nLittle\nHalf\nA lot\nAll");
-  //lv_obj_set_event_cb(ddlist, ddlist_event_cb);
-
-  lv_obj_t * chart = lv_chart_create(lv_scr_act(), NULL);
-  lv_obj_set_size(chart, lv_obj_get_width(lv_scr_act()) / 2, lv_obj_get_width(lv_scr_act()) / 4);
-  lv_obj_align(chart, slider, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 40);
-  lv_chart_set_series_width(chart, 3);
-
-  lv_chart_series_t * dl1 = lv_chart_add_series(chart, LV_COLOR_RED);
-  lv_chart_set_next(chart, dl1, 10);
-  lv_chart_set_next(chart, dl1, 25);
-  lv_chart_set_next(chart, dl1, 45);
-  lv_chart_set_next(chart, dl1, 80);
-
-  lv_chart_series_t * dl2 = lv_chart_add_series(chart, lv_color_make(0x40, 0x70, 0xC0));
-  lv_chart_set_next(chart, dl2, 10);
-  lv_chart_set_next(chart, dl2, 25);
-  lv_chart_set_next(chart, dl2, 45);
-  lv_chart_set_next(chart, dl2, 80);
-  lv_chart_set_next(chart, dl2, 75);
-  lv_chart_set_next(chart, dl2, 505);
-
-  slider_inc.attach_ms(100, slider_increment);
+  /*Animate the new style*/
+  lv_anim_t sa;
+  lv_style_anim_init(&sa);
+  lv_style_anim_set_styles(&sa, &btn3_style, &lv_style_btn_rel, &lv_style_pretty);
+  lv_style_anim_set_time(&sa, 500, 500);
+  lv_style_anim_set_playback(&sa, 500);
+  lv_style_anim_set_repeat(&sa, 500);
+  lv_style_anim_create(&sa);
   
 }
 

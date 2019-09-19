@@ -47,6 +47,12 @@ void my_disp_flush(lv_disp_drv_t *disp, const lv_area_t *area, lv_color_t *color
       color_p++;
     }
   }
+
+  // ########## Backlight Dimming ##########
+  tft.writecommand(0x02);
+  tft.writedata(map(slider_value, 0, 100, 0, 255));
+  // ########## Backlight Dimming ##########
+
   tft.endWrite(); /* terminate TFT transaction */
   lv_disp_flush_ready(disp); /* tell lvgl that flushing is done */
 }

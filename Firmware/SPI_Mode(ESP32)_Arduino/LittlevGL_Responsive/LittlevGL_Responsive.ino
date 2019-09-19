@@ -5,23 +5,10 @@
 #define LVGL_TICK_PERIOD 20
 
 Ticker tick; /* timer for interrupt handler */
-Ticker slider_inc;
-uint8_t slider_value = 0;
 
 TFT_eSPI tft = TFT_eSPI(); /* TFT instance */
 static lv_disp_buf_t disp_buf;
 static lv_color_t buf[LV_HOR_RES_MAX * 10];
-
-static lv_obj_t * slider;
-
-void slider_increment() {
-  slider_value = slider_value + 1;
-  if (slider_value > 100) {
-    slider_value = 0;
-  }
-  lv_slider_set_value(slider, slider_value, false);
-}
-
 
 #if USE_LV_LOG != 0
 /* Serial debugging */
@@ -108,62 +95,54 @@ void setup() {
   /*Initialize the graphics library's tick*/
   tick.attach_ms(LVGL_TICK_PERIOD, lv_tick_handler);
 
-  /* Create simple label */
-  lv_obj_t *label = lv_label_create(lv_scr_act(), NULL);
-  lv_label_set_text(label, "Object usage demo");
-  lv_obj_set_x(label, 50);
-  lv_obj_set_y(label, 10);
+  lv_obj_t * scr = lv_disp_get_scr_act(NULL);   /*Get the current screen*/
 
-  lv_obj_t * btn1 = lv_btn_create(lv_disp_get_scr_act(NULL), NULL);
-  //lv_obj_set_event_cb(btn1, btn_event_cb);
-  lv_obj_set_pos(btn1, 350, 10);
+  lv_obj_t * label;
+
+  /*LV_DPI*/
+  lv_obj_t * btn1;
+  btn1 = lv_btn_create(scr, NULL);
+  lv_obj_set_pos(btn1, LV_DPI / 10, LV_DPI / 10);   /*Use LV_DPI to set the position*/
+  lv_obj_set_size(btn1, LV_DPI, LV_DPI / 2);      /*Use LVDOI to set the size*/
+
   label = lv_label_create(btn1, NULL);
-  lv_label_set_text(label, "Button 1");
+  lv_label_set_text(label, "LV_DPI");
 
-  lv_obj_t * btn2 = lv_btn_create(lv_scr_act(), btn1);
-  lv_obj_align(btn2, btn1, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 20);
+  /*ALIGN*/
+  lv_obj_t * btn2;
+  btn2 = lv_btn_create(scr, btn1);
+  lv_obj_align(btn2, btn1, LV_ALIGN_OUT_RIGHT_MID, LV_DPI / 4, 0);
+
   label = lv_label_create(btn2, NULL);
-  lv_label_set_text(label, "Button 2");
+  lv_label_set_text(label, "Align");
 
-  
-  lv_obj_t * btn3 = lv_btn_create(lv_scr_act(), btn1);
-  lv_obj_align(btn3, btn2, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 20);
+  /*AUTO FIT*/
+  lv_obj_t * btn3;
+  btn3 = lv_btn_create(scr, btn1);
+  lv_btn_set_fit(btn3, LV_FIT_TIGHT);
+
   label = lv_label_create(btn3, NULL);
-  lv_label_set_text(label, "Button 3");
+  lv_label_set_text(label, "Fit");
 
-  slider = lv_slider_create(lv_scr_act(), NULL);
-  lv_obj_set_size(slider, lv_obj_get_width(lv_scr_act())  / 3, LV_DPI / 3);
-  lv_obj_set_x(slider, 50);
-  lv_obj_set_y(slider, 60);
-  lv_slider_set_value(slider, slider_value, false);
+  lv_obj_align(btn3, btn1, LV_ALIGN_OUT_BOTTOM_MID, 0, LV_DPI / 4);   /*Align when already resized because of the label*/
 
-  lv_obj_t * ddlist = lv_ddlist_create(lv_scr_act(), NULL);
-  lv_obj_align(ddlist, slider, LV_ALIGN_OUT_RIGHT_TOP, 50, 0);
-  lv_obj_set_top(ddlist, true);
-  lv_ddlist_set_options(ddlist, "None\nLittle\nHalf\nA lot\nAll");
-  //lv_obj_set_event_cb(ddlist, ddlist_event_cb);
+  /*LAYOUT*/
+  lv_obj_t * btn4;
+  btn4 = lv_btn_create(scr, btn1);
+  lv_btn_set_fit(btn4, LV_FIT_TIGHT);       /*Enable fit too*/
+  lv_btn_set_layout(btn4, LV_LAYOUT_COL_R);   /*Right aligned column layout*/
 
-  lv_obj_t * chart = lv_chart_create(lv_scr_act(), NULL);
-  lv_obj_set_size(chart, lv_obj_get_width(lv_scr_act()) / 2, lv_obj_get_width(lv_scr_act()) / 4);
-  lv_obj_align(chart, slider, LV_ALIGN_OUT_BOTTOM_LEFT, 0, 40);
-  lv_chart_set_series_width(chart, 3);
+  label = lv_label_create(btn4, NULL);
+  lv_label_set_text(label, "First");
 
-  lv_chart_series_t * dl1 = lv_chart_add_series(chart, LV_COLOR_RED);
-  lv_chart_set_next(chart, dl1, 10);
-  lv_chart_set_next(chart, dl1, 25);
-  lv_chart_set_next(chart, dl1, 45);
-  lv_chart_set_next(chart, dl1, 80);
+  label = lv_label_create(btn4, NULL);
+  lv_label_set_text(label, "Second");
 
-  lv_chart_series_t * dl2 = lv_chart_add_series(chart, lv_color_make(0x40, 0x70, 0xC0));
-  lv_chart_set_next(chart, dl2, 10);
-  lv_chart_set_next(chart, dl2, 25);
-  lv_chart_set_next(chart, dl2, 45);
-  lv_chart_set_next(chart, dl2, 80);
-  lv_chart_set_next(chart, dl2, 75);
-  lv_chart_set_next(chart, dl2, 505);
+  label = lv_label_create(btn4, NULL);
+  lv_label_set_text(label, "Third");
 
-  slider_inc.attach_ms(100, slider_increment);
-  
+  lv_obj_align(btn4, btn2, LV_ALIGN_OUT_BOTTOM_MID, 0, LV_DPI / 4);   /*Align when already resized because of the label*/
+
 }
 
 
