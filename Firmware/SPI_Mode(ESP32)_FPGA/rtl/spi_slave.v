@@ -24,6 +24,7 @@ module spi_slave (
     /**************************************************************
      *  ST7735R Instruction
      *************************************************************/
+    localparam CMD_SWRESET  = 8'h01;    // Software reset
     localparam CMD_CASET    = 8'h2A;    // Column Address Set
     localparam CMD_RASET    = 8'h2B;    // Row Address Set
     localparam CMD_RAMWR    = 8'h2C;    // Memory Write
@@ -107,6 +108,10 @@ module spi_slave (
                     r_inst_byte_cnt[1:0] <= 2'd0;
                 end else begin
                     case (o_inst_data[7:0])
+                        CMD_SWRESET : begin
+                                // Software reset
+                                o_pwm_duty[7:0] <= 8'd255;
+                            end
                         CMD_RAMWR : begin
                                 // ピクセルデータ取得
                                 r_mosi_16_pixel_data[15:0] <= {r_mosi_16_pixel_data[7:0], r_mosi_8bit_fix[7:0]};
