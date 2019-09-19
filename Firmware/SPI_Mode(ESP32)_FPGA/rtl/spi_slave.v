@@ -17,7 +17,8 @@ module spi_slave (
 
     output  reg     [31:0]  o_col_addr,     // XS15:0[31:16], XE15:0[15:0]
     output  reg     [31:0]  o_row_addr,     // YS15:0[31:16], YE15:0[15:0]
-    output  reg             o_row_addr_en_pls
+    output  reg             o_row_addr_en_pls,
+    output  reg     [ 7:0]  o_pwm_duty      // PWM Duty(0:MIN / 255:MAX)
 );
 
     /**************************************************************
@@ -27,6 +28,10 @@ module spi_slave (
     localparam CMD_RASET    = 8'h2B;    // Row Address Set
     localparam CMD_RAMWR    = 8'h2C;    // Memory Write
 
+    /**************************************************************
+     *  Special Instruction
+     *************************************************************/
+    localparam CMD_PWMDS    = 8'h02;    // PWM Duty Set
 
     /**************************************************************
      * Instructionの検出
@@ -91,6 +96,7 @@ module spi_slave (
             o_row_addr[31:0] <= 32'd0;
             o_row_addr_en_pls <= 1'b0;
             o_pixel_en_pls <= 1'b0;
+            o_pwm_duty <= 8'd255;
         end else begin
             if (w_mosi_8bit_fin_posedge_dt) begin
                 // dc:low = Command
@@ -100,25 +106,33 @@ module spi_slave (
                     r_pixel_data_fin <= 1'b0;
                     r_inst_byte_cnt[1:0] <= 2'd0;
                 end else begin
-                    // RAMWR
-                    if (o_inst_data[7:0] == CMD_RAMWR) begin
-                        // ピクセルデータ取得
-                        r_mosi_16_pixel_data[15:0] <= {r_mosi_16_pixel_data[7:0], r_mosi_8bit_fix[7:0]};
-                        r_pixel_data_fin <= ~r_pixel_data_fin;
-                        if (r_pixel_data_fin) begin
-                            o_pixel_en_pls <= r_pixel_data_fin;
-                        end
-                    end else if (o_inst_data[7:0] == CMD_CASET) begin
-                        // Column Address Set
-                        o_col_addr [31:0] <= {o_col_addr[23:0], r_mosi_8bit_fix[7:0]};
-                    end else if (o_inst_data[7:0] == CMD_RASET) begin
-                        // Row Address set
-                        o_row_addr [31:0] <= {o_row_addr[23:0], r_mosi_8bit_fix[7:0]};
-                        r_inst_byte_cnt[1:0] <= r_inst_byte_cnt[1:0] + 2'd1;
-                        if (r_inst_byte_cnt[1:0] == 2'd3) begin
-                            o_row_addr_en_pls <= 1'b1;
-                        end
-                    end
+                    case (o_inst_data[7:0])
+                        CMD_RAMWR : begin
+                                // ピクセルデータ取得
+                                r_mosi_16_pixel_data[15:0] <= {r_mosi_16_pixel_data[7:0], r_mosi_8bit_fix[7:0]};
+                                r_pixel_data_fin <= ~r_pixel_data_fin;
+                                if (r_pixel_data_fin) begin
+                                    o_pixel_en_pls <= r_pixel_data_fin;
+                                end
+                            end
+                        CMD_CASET : begin
+                                // Column Address Set
+                                o_col_addr[31:0] <= {o_col_addr[23:0], r_mosi_8bit_fix[7:0]};
+                            end
+                        CMD_RASET : begin
+                                // Row Address Set
+                                o_row_addr[31:0] <= {o_row_addr[23:0], r_mosi_8bit_fix[7:0]};
+                                r_inst_byte_cnt[1:0] <= r_inst_byte_cnt[1:0] + 2'd1;
+                                if (r_inst_byte_cnt[1:0] == 2'd3) begin
+                                    o_row_addr_en_pls <= 1'b1;
+                                end
+                            end
+                        CMD_PWMDS : begin
+                                // PWM Duty Set
+                                o_pwm_duty[7:0] <= r_mosi_8bit_fix[7:0];
+                            end
+                        default : ;
+                    endcase
                 end
             end else begin
                 o_inst_en_pls <= 1'b0;

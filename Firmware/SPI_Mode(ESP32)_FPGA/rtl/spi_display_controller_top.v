@@ -45,7 +45,6 @@ module spi_display_controller_top (
     localparam DispSramMaxAddr  = DispWidth * DispHeight;
 
     assign oDispDispPort        = 1'b1;
-    assign oDispLedSHDNPort     = 1'b1;
     assign oDispDataEnablePort  = 1'b0;    // Data Enableは常にLowで良さそう（SYNC mode時）
 
 
@@ -72,6 +71,7 @@ module spi_display_controller_top (
     wire        w_row_addr_en;
     wire [31:0] w_col_addr;
     wire        w_col_addr_en;
+    wire [ 7:0] w_pwm_duty;
     spi_slave spi_slave_inst (
         .i_clk ( mco ),                         // FPGA内部CLK
         .i_rst_n ( rst_n ),                     // RESET
@@ -83,11 +83,23 @@ module spi_display_controller_top (
         .o_pixel_en_pls ( w_pixel_en ),         // 画素データ有効
         .o_inst_data ( w_inst_data[7:0] ),      // 命令データ
         .o_inst_en_pls ( w_inst_en ),           // 命令データ有効
-
+        .o_col_addr ( w_col_addr[31:0] ),       // Column Address
         .o_row_addr ( w_row_addr[31:0] ),       // Row Address
         .o_row_addr_en_pls ( w_row_addr_en ),   // Row Address enable
-        .o_col_addr ( w_col_addr[31:0] )        // Column Address
-    );    
+        .o_pwm_duty ( w_pwm_duty[7:0] )         // LCD Backlight PWM Duty
+    );
+
+
+    /**************************************************************
+     *  LCDバックライトPWM調光
+     *************************************************************/
+    pwm pwm_inst (
+        .i_clk ( mco ),
+        .i_rst_n ( rst_n ),
+        .i_duty ( w_pwm_duty[7:0] ),
+        .o_pwm ( oDispLedSHDNPort )
+    );
+
 
     /**************************************************************
      *  Instrucion分岐 / データ書き込み要求処理
