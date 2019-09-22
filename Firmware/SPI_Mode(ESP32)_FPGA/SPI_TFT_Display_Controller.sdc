@@ -123,7 +123,6 @@ set_false_path -from [get_ports {iModeSelectorPort[*]}] -to [all_registers]
 #**************************************************************
 
 set_max_delay -from [get_registers {spi_slave:spi_slave_inst|r_mosi_8bit_rx_fin_ff[0]}] -to [get_registers {spi_slave:spi_slave_inst|r_mosi_8bit_rx_fin_ff[1]}] 2.100
-set_max_delay -from [get_registers {spi_slave:spi_slave_inst|r_mosi_8bit_rx_fin_ff[1]}] -to [get_registers {spi_slave:spi_slave_inst|r_mosi_8bit_rx_fin_ff[2]}] 2.100
 
 #**************************************************************
 # Set Minimum Delay

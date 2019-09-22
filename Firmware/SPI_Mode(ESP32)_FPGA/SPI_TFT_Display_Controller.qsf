@@ -120,6 +120,10 @@ set_global_assignment -name RESERVE_ALL_UNUSED_PINS_NO_OUTPUT_GND "AS INPUT TRI-
 set_location_assignment PIN_6 -to oDbgSig1
 set_location_assignment PIN_8 -to oDbgSig2
 set_location_assignment PIN_3 -to DC
+set_global_assignment -name VERILOG_FILE rtl/synchronizer.v
+set_global_assignment -name VERILOG_FILE rtl/sram_controller.v
+set_global_assignment -name VERILOG_FILE rtl/lcd_controller.v
+set_global_assignment -name VERILOG_FILE rtl/inst_dec_reg.v
 set_global_assignment -name VERILOG_FILE rtl/pwm.v
 set_global_assignment -name VERILOG_FILE rtl/spi_slave.v
 set_global_assignment -name VERILOG_FILE rtl/spi_display_controller_top.v

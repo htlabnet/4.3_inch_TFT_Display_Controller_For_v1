@@ -10,38 +10,18 @@ module spi_slave (
     input   wire            i_spi_mosi,     // SPI_MOSI
     input   wire            i_dc,           // DC(H:Data / L:Command)
 
-    output  wire    [15:0]  o_pixel_data,   // 画素データ
-    output  reg             o_pixel_en_pls, // 画素データ有効パルス出力
-    output  reg     [ 7:0]  o_inst_data,    // Instruction Data
-    output  reg             o_inst_en_pls,  // Instruction Data 有効パルス出力
-
-    output  reg     [31:0]  o_col_addr,     // XS15:0[31:16], XE15:0[15:0]
-    output  reg     [31:0]  o_row_addr,     // YS15:0[31:16], YE15:0[15:0]
-    output  reg             o_row_addr_en_pls,
-    output  reg     [ 7:0]  o_pwm_duty      // PWM Duty(0:MIN / 255:MAX)
-);
+    // output
+    output  reg     [ 7:0]  o_data,
+    output  reg             o_dc,
+    output  reg             o_rxdone
+    );
 
     /**************************************************************
-     *  ST7735R Instruction
-     *************************************************************/
-    localparam CMD_SWRESET  = 8'h01;    // Software reset
-    localparam CMD_CASET    = 8'h2A;    // Column Address Set
-    localparam CMD_RASET    = 8'h2B;    // Row Address Set
-    localparam CMD_RAMWR    = 8'h2C;    // Memory Write
-
-    /**************************************************************
-     *  Special Instruction
-     *************************************************************/
-    localparam CMD_PWMDS    = 8'h02;    // PWM Duty Set
-
-    /**************************************************************
-     * Instructionの検出
+     * SPI受信(DC状態はLSBのサンプリングと同時に行う）
      *************************************************************/
     reg [ 7:0]  r_mosi_shift_8;     // 受信データ
     reg [ 2:0]  r_mosi_8bitCnt;     // 受信bit数検知用
     wire        w_mosi_8bit_rx_fin = &r_mosi_8bitCnt[2:0];
-    reg [ 7:0]  r_mosi_8bit_fix;
-    reg         r_mosi_8bit_dc_fix;
     reg         r_mosi_8bit_rx_done;   
 
     // SPI_CLKでデータ受信
@@ -62,8 +42,8 @@ module spi_slave (
 
             // 受信データとDC状態ラッチ
             if (w_mosi_8bit_rx_fin) begin
-                r_mosi_8bit_fix[7:0] <= {r_mosi_shift_8[6:0], i_spi_mosi};
-                r_mosi_8bit_dc_fix <= i_dc;
+                o_data[7:0] <= {r_mosi_shift_8[6:0], i_spi_mosi};
+                o_dc <= i_dc;
                 r_mosi_8bit_rx_done <= 1'b1;
             end else if (r_mosi_8bitCnt[2:0] == 3'd3) begin
                 r_mosi_8bit_rx_done <= 1'b0;
@@ -71,82 +51,19 @@ module spi_slave (
         end
     end
 
-    // r_mosi_8bit_rx_doneの立ち上がりで受信データクロック載せ替え
-    reg [ 2:0]  r_mosi_8bit_rx_fin_ff;
+    /**************************************************************
+     * 受信完了フラグのクロック載せ替え(i_spi_clk => i_clk)
+     *************************************************************/
+    // r_mosi_8bit_rx_doneの立ち上がり検出
+    reg [ 1:0]  r_mosi_8bit_rx_fin_ff;
     always @(posedge i_clk or negedge i_rst_n) begin
         if (~i_rst_n) begin
-            r_mosi_8bit_rx_fin_ff[2:0] <= 3'd0;
+            r_mosi_8bit_rx_fin_ff[1:0] <= 2'd0;
+            o_rxdone <= 1'b0;
         end else begin
-            r_mosi_8bit_rx_fin_ff[2:0] <= {r_mosi_8bit_rx_fin_ff[1:0], r_mosi_8bit_rx_done};
+            r_mosi_8bit_rx_fin_ff[1:0] <= {r_mosi_8bit_rx_fin_ff[0], r_mosi_8bit_rx_done};
+            o_rxdone <= (r_mosi_8bit_rx_fin_ff[1:0] == 2'b01);
         end
     end
-    wire    w_mosi_8bit_fin_posedge_dt = (r_mosi_8bit_rx_fin_ff[2:1] == 2'b01);
-
-
-    // 受信データ処理
-    reg [15:0]  r_mosi_16_pixel_data;
-    reg         r_pixel_data_fin;
-    reg [1:0]   r_inst_byte_cnt;
-    always @(posedge i_clk or negedge i_rst_n) begin
-        if (~i_rst_n) begin
-            o_inst_data[7:0] <= 8'd0;
-            o_inst_en_pls <= 1'b0;
-            r_pixel_data_fin <= 1'b0;
-            o_col_addr[31:0] <= 32'd0;
-            r_inst_byte_cnt[1:0] <= 2'd0;
-            o_row_addr[31:0] <= 32'd0;
-            o_row_addr_en_pls <= 1'b0;
-            o_pixel_en_pls <= 1'b0;
-            o_pwm_duty <= 8'd255;
-        end else begin
-            if (w_mosi_8bit_fin_posedge_dt) begin
-                // dc:low = Command
-                if (~r_mosi_8bit_dc_fix) begin
-                    o_inst_data[7:0] <= r_mosi_8bit_fix[7:0];
-                    o_inst_en_pls <= 1'b1;
-                    r_pixel_data_fin <= 1'b0;
-                    r_inst_byte_cnt[1:0] <= 2'd0;
-                end else begin
-                    case (o_inst_data[7:0])
-                        CMD_SWRESET : begin
-                                // Software reset
-                                o_pwm_duty[7:0] <= 8'd255;
-                            end
-                        CMD_RAMWR : begin
-                                // ピクセルデータ取得
-                                r_mosi_16_pixel_data[15:0] <= {r_mosi_16_pixel_data[7:0], r_mosi_8bit_fix[7:0]};
-                                r_pixel_data_fin <= ~r_pixel_data_fin;
-                                if (r_pixel_data_fin) begin
-                                    o_pixel_en_pls <= r_pixel_data_fin;
-                                end
-                            end
-                        CMD_CASET : begin
-                                // Column Address Set
-                                o_col_addr[31:0] <= {o_col_addr[23:0], r_mosi_8bit_fix[7:0]};
-                            end
-                        CMD_RASET : begin
-                                // Row Address Set
-                                o_row_addr[31:0] <= {o_row_addr[23:0], r_mosi_8bit_fix[7:0]};
-                                r_inst_byte_cnt[1:0] <= r_inst_byte_cnt[1:0] + 2'd1;
-                                if (r_inst_byte_cnt[1:0] == 2'd3) begin
-                                    o_row_addr_en_pls <= 1'b1;
-                                end
-                            end
-                        CMD_PWMDS : begin
-                                // PWM Duty Set
-                                o_pwm_duty[7:0] <= r_mosi_8bit_fix[7:0];
-                            end
-                        default : ;
-                    endcase
-                end
-            end else begin
-                o_inst_en_pls <= 1'b0;
-                o_pixel_en_pls <= 1'b0;
-                o_row_addr_en_pls <= 1'b0;
-            end
-        end
-    end
-
-    assign o_pixel_data[15:0] = r_mosi_16_pixel_data[15:0];
 
 endmodule
