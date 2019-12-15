@@ -1,7 +1,7 @@
 # 1. 概要
 Raspberry PiにTFT Display ControllerをSPI接続して、ディスクトップ画面を出力する方法について説明する。  
 CPLDには「[SPI_Mode(RasPi)_FPGA](../Firmware/SPI_Mode(RasPi)_FPGA)」のpofファイルを書き込んでおく。  
-RasPi2B及びRasPi3Bにて動作確認済み。
+RasPi 2B,3B,4B(4GB)にて動作確認済み。
 
 # 2. RasPiとコントローラボードの接続
 以下のように接続する。
@@ -60,7 +60,6 @@ sudo vi /etc/modules
 ```
 追記する内容
 ```
-spi-bcm2835
 flexfb
 fbtft_device
 ```
